@@ -673,27 +673,6 @@ void findContours(int* im,
 
 	if (*hierarchy_size != *contour_index_size || *hierarchy_size != *contour_size)
 		printf("Storage offset error");
-	// int hierarchy_size;
-	// int contour_size;
-	// int contour_index_size;
-	contours = trimPoint2dVector(&contour_vector, contour_size);
-	contours_index = trimIntVector(&contour_counter, contour_index_size);
-	hierarchy = trimNodeVector(&hierarchy_vector, hierarchy_size);
-
-	assert(contours_index != NULL);
-
-	saveImageFile("test2.bmp", numrows, numcols, hierarchy, contours, contours_index, *contour_size);
-	
-	if (*hierarchy_size != *contour_index_size || *hierarchy_size != *contour_size)
-		printf("Storage offset error");
-
-	// //free malloc
-	// free(hierarchy);
-	// for (int i = 0; i < contour_size; i++) {
-	// 	free(contours[i]);
-	// }
-	// free(contours);
-	// free(contours_index);
 }
 //==============================================================================//
 
