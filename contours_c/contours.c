@@ -1,13 +1,8 @@
-﻿#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <assert.h>
+﻿#include "contours.h"
 
-#define _CRT_SECURE_NO_WARNINGS
+// #define _CRT_SECURE_NO_WARNINGS
 #define HOLE_BORDER 1
 #define OUTER_BORDER 2
-
-typedef enum { false, true } bool;
 
 int** create2dArray(int r, int c) {
 	int **arr;
@@ -29,22 +24,12 @@ void free2dArray(int **arr, int r) {
 	free(arr);
 }
 
-struct Border {
-	int seq_num;
-	int border_type;
-};
 
-//======================Point=========================================//
-struct Point {
-	int row;
-	int col;
-};
-
-bool samePoint(struct Point a, struct Point b) {
+bool samePoint(Point a, Point b) {
 	return a.row == b.row && a.col == b.col;
 }
 
-void setPoint(struct Point *p, int r, int c) {
+void setPoint(Point *p, int r, int c) {
 	assert(p);
 	p->col = c;
 	p->row = r;
@@ -52,21 +37,15 @@ void setPoint(struct Point *p, int r, int c) {
 //====================================================================//
 
 //======================Node==========================================//
-struct Node {
-	struct Border border;
-	int parent;
-	int first_child;
-	int next_sibling;
-};
 
-void setNode(struct Node *n, int p, int fc, int ns) {
+void setNode(Node *n, int p, int fc, int ns) {
 	assert(n);
 	n->parent = p;
 	n->first_child = fc;
 	n->next_sibling = ns;
 }
 
-void resetNode(struct Node *n) {
+void resetNode(Node *n) {
 	assert(n);
 	n->parent = -1;
 	n->first_child = -1;
@@ -75,21 +54,16 @@ void resetNode(struct Node *n) {
 //====================================================================//
 
 //======================NodeVector====================================//
-struct nodeVector {
-	struct Node *vector;
-	int current_max;
-	int current_index;
-};
 
-void initNodeVector(struct nodeVector *nv) {
+void initNodeVector(nodeVector *nv) {
 	nv->current_max = 10;
 	nv->current_index = 0;
-	nv->vector = (struct Node *) malloc(sizeof(struct Node) * (nv->current_max));
+	nv->vector = (Node *) malloc(sizeof(Node) * (nv->current_max));
 }
 
-void resizeNodeVector(struct nodeVector *nv) {
-	struct Node *tmp;
-	if ((tmp = (struct Node*) realloc(nv->vector, sizeof(struct Node) * (nv->current_max * 2))) == NULL) {
+void resizeNodeVector(nodeVector *nv) {
+	Node *tmp;
+	if ((tmp = (Node*) realloc(nv->vector, sizeof(Node) * (nv->current_max * 2))) == NULL) {
 		free(nv->vector);
 		perror("malloc failed");
 	}
@@ -97,16 +71,16 @@ void resizeNodeVector(struct nodeVector *nv) {
 	nv->vector = tmp;
 }
 
-void addNodeVector(struct nodeVector *nv, struct Node node) {
+void addNodeVector(nodeVector *nv, Node node) {
 	if (nv->current_index + 1 >= nv->current_max)
 		resizeNodeVector(nv);
 	nv->vector[nv->current_index] = node;
 	nv->current_index += 1;
 }
 
-struct Node* trimNodeVector(struct nodeVector *nv, int *vector_size) {
-	struct Node *tmp;
-	if ((tmp = (struct Node*) realloc(nv->vector, sizeof(struct Node) * (nv->current_index))) == NULL) {
+Node* trimNodeVector(nodeVector *nv, int *vector_size) {
+	Node *tmp;
+	if ((tmp = (Node*) realloc(nv->vector, sizeof(Node) * (nv->current_index))) == NULL) {
 		free(nv->vector);
 		perror("malloc failed");
 	}
@@ -116,19 +90,14 @@ struct Node* trimNodeVector(struct nodeVector *nv, int *vector_size) {
 //=====================================================================//
 
 //=====================IntVector=======================================//
-struct intVector {
-	int *vector;
-	int current_max;
-	int current_index;
-};
 
-void initIntVector(struct intVector *iv) {
+void initIntVector(intVector *iv) {
 	iv->current_index = 0;
 	iv->current_max = 10;
 	iv->vector = (int*)malloc(sizeof(int) * (iv->current_max));
 }
 
-void resizeIntVector(struct intVector *iv) {
+void resizeIntVector(intVector *iv) {
 	int *tmp;
 	if ((tmp = (int*)realloc(iv->vector, sizeof(int) * (iv->current_max * 2))) == NULL) {
 		free(iv->vector);
@@ -138,7 +107,7 @@ void resizeIntVector(struct intVector *iv) {
 	iv->vector = tmp;
 }
 
-void addIntVector(struct intVector *iv, int value) {
+void addIntVector(intVector *iv, int value) {
 
 	if (iv->current_index + 1 >= iv->current_max)
 		resizeIntVector(iv);
@@ -146,7 +115,7 @@ void addIntVector(struct intVector *iv, int value) {
 	iv->current_index += 1;
 }
 
-int* trimIntVector(struct intVector *iv, int *vector_size) {
+int* trimIntVector(intVector *iv, int *vector_size) {
 	int *tmp;
 	if ((tmp = realloc(iv->vector, sizeof(int) * (iv->current_index))) == NULL) {
 		free(iv->vector);
@@ -158,13 +127,8 @@ int* trimIntVector(struct intVector *iv, int *vector_size) {
 //=====================================================================//
 
 //=====================Pixel2dArray=======================================//
-struct Pixel {
-	unsigned char red;
-	unsigned char blue;
-	unsigned char green;
-};
 
-void setPixel(struct Pixel *p, unsigned char r, unsigned char g, unsigned char b) {
+void setPixel(Pixel *p, unsigned char r, unsigned char g, unsigned char b) {
 	p->red = r;
 	p->green = g;
 	p->blue = b;
@@ -172,33 +136,22 @@ void setPixel(struct Pixel *p, unsigned char r, unsigned char g, unsigned char b
 //=====================================================================//
 
 //=====================PointVector=====================================//
-struct pointVector {
-	struct Point *vector;
-	int current_max;
-	int current_index;
-};
 
-struct point2dVector {
-	struct Point **vector;
-	int current_max;
-	int current_index;
-};
-
-void initPoint2dVector(struct point2dVector *p2v) {
+void initPoint2dVector(point2dVector *p2v) {
 	p2v->current_max = 10;
 	p2v->current_index = 0;
-	p2v->vector = (struct Point **) malloc(sizeof(struct Point*) * (p2v->current_max));
+	p2v->vector = (Point **) malloc(sizeof(Point*) * (p2v->current_max));
 }
 
-void initPointVector(struct pointVector *pv) {
+void initPointVector(pointVector *pv) {
 	pv->current_max = 10;
 	pv->current_index = 0;
-	pv->vector = (struct Point *) malloc(sizeof(struct Point) * (pv->current_max));
+	pv->vector = (Point *) malloc(sizeof(Point) * (pv->current_max));
 }
 
-void resizePoint2dVector(struct point2dVector *p2v) {
-	struct Point **tmp;
-	if ((tmp = (struct Point**) realloc(p2v->vector, sizeof(struct Point*) * (p2v->current_max * 2))) == NULL) {
+void resizePoint2dVector(point2dVector *p2v) {
+	Point **tmp;
+	if ((tmp = (Point**) realloc(p2v->vector, sizeof(Point*) * (p2v->current_max * 2))) == NULL) {
 		free(p2v->vector);
 		perror("malloc failed");
 	}
@@ -206,9 +159,9 @@ void resizePoint2dVector(struct point2dVector *p2v) {
 	p2v->vector = tmp;
 }
 
-void resizePointVector(struct pointVector *pv) {
-	struct Point *tmp;
-	if ((tmp = (struct Point*) realloc(pv->vector, sizeof(struct Point) * (pv->current_max * 2))) == NULL) {
+void resizePointVector(pointVector *pv) {
+	Point *tmp;
+	if ((tmp = (Point*) realloc(pv->vector, sizeof(Point) * (pv->current_max * 2))) == NULL) {
 		free(pv->vector);
 		perror("malloc failed");
 	}
@@ -216,7 +169,7 @@ void resizePointVector(struct pointVector *pv) {
 	pv->vector = tmp;
 }
 
-void addPoint2dVector(struct point2dVector *p2v, struct Point *point_vector) {
+void addPoint2dVector(point2dVector *p2v, Point *point_vector) {
 
 	if (p2v->current_index + 1 >= p2v->current_max)
 		resizePoint2dVector(p2v);
@@ -224,7 +177,7 @@ void addPoint2dVector(struct point2dVector *p2v, struct Point *point_vector) {
 	p2v->current_index += 1;
 }
 
-void addPointVector(struct pointVector *pv, struct Point point) {
+void addPointVector(pointVector *pv, Point point) {
 
 	if (pv->current_index + 1 >= pv->current_max)
 		resizePointVector(pv);
@@ -232,9 +185,9 @@ void addPointVector(struct pointVector *pv, struct Point point) {
 	pv->current_index += 1;
 }
 
-struct Point** trimPoint2dVector(struct point2dVector *p2v, int *vector_size) {
-	struct Point **tmp;
-	if ((tmp = (struct Point**) realloc(p2v->vector, sizeof(struct Point*) * (p2v->current_index))) == NULL) {
+Point** trimPoint2dVector(point2dVector *p2v, int *vector_size) {
+	Point **tmp;
+	if ((tmp = (Point**) realloc(p2v->vector, sizeof(Point*) * (p2v->current_index))) == NULL) {
 		free(p2v->vector);
 		perror("malloc failed");
 	}
@@ -242,9 +195,9 @@ struct Point** trimPoint2dVector(struct point2dVector *p2v, int *vector_size) {
 	return tmp;
 }
 
-struct Point* trimPointVector(struct pointVector *pv, int *vector_size) {
-	struct Point *tmp;
-	if ((tmp = (struct Point*) realloc(pv->vector, sizeof(struct Point) * (pv->current_index))) == NULL) {
+Point* trimPointVector(pointVector *pv, int *vector_size) {
+	Point *tmp;
+	if ((tmp = (Point*) realloc(pv->vector, sizeof(Point) * (pv->current_index))) == NULL) {
 		free(pv->vector);
 		perror("malloc failed");
 	}
@@ -256,7 +209,7 @@ struct Point* trimPointVector(struct pointVector *pv, int *vector_size) {
 //===========================Algorithm==================================//
 
 //step around a pixel CCW
-void stepCCW(struct Point *current, struct Point pivot) {
+void stepCCW(Point *current, Point pivot) {
 	if (current->col > pivot.col)
 		setPoint(current, pivot.row - 1, pivot.col);
 	else if (current->col < pivot.col)
@@ -268,7 +221,7 @@ void stepCCW(struct Point *current, struct Point pivot) {
 }
 
 //step around a pixel CW
-void stepCW(struct Point *current, struct Point pivot) {
+void stepCW(Point *current, Point pivot) {
 	if (current->col > pivot.col)
 		setPoint(current, pivot.row + 1, pivot.col);
 	else if (current->col < pivot.col)
@@ -280,12 +233,12 @@ void stepCW(struct Point *current, struct Point pivot) {
 }
 
 //checks if a given pixel is out of bounds of the image
-bool pixelOutOfBounds(struct Point p, int numrows, int numcols) {
+bool pixelOutOfBounds(Point p, int numrows, int numcols) {
 	return (p.col >= numcols || p.row >= numrows || p.col < 0 || p.row < 0);
 }
 
 //marks a pixel as examined after passing through
-void markExamined(struct Point mark, struct Point center, bool checked[4]) {
+void markExamined(Point mark, Point center, bool checked[4]) {
 	//p3.row, p3.col + 1
 	int loc = -1;
 	//    3
@@ -313,10 +266,10 @@ bool isExamined(bool checked[4]) {
 	return checked[0];
 }
 
-void followBorder(int *image, int numrows, int numcols, int row, int col, struct Point p2, struct Border NBD, struct point2dVector *contour_vector, struct intVector *contour_counter) {
-	struct Point current;
+void followBorder(int *image, int numrows, int numcols, int row, int col, Point p2, Border NBD, point2dVector *contour_vector, intVector *contour_counter) {
+	Point current;
 	setPoint(&current, p2.row, p2.col);
-	struct Point start;
+	Point start;
 	setPoint(&start, row, col);
 
 	//(3.1)
@@ -326,7 +279,7 @@ void followBorder(int *image, int numrows, int numcols, int row, int col, struct
 		stepCW(&current, start);
 		if (samePoint(current, p2)) {
 			image[start.row*numrows+start.col] = -NBD.seq_num;
-			struct Point *temp = (struct Point*)malloc(sizeof(struct Point));
+			Point *temp = (Point*)malloc(sizeof(Point));
 			temp[0] = start;
 			addPoint2dVector(contour_vector, temp);
 			addIntVector(contour_counter, 1);
@@ -334,16 +287,16 @@ void followBorder(int *image, int numrows, int numcols, int row, int col, struct
 		}
 	} while (pixelOutOfBounds(current, numrows, numcols) || image[current.row*numrows+current.col] == 0);
 	
-	struct pointVector point_storage;
+	pointVector point_storage;
 	initPointVector(&point_storage);
 
-	struct Point p1 = current;
+	Point p1 = current;
 
 	//(3.2)
 	//(i2, j2) <- (i1, j1) and (i3, j3) <- (i, j).
 
-	struct Point p3 = start;
-	struct Point p4;
+	Point p3 = start;
+	Point p4;
 	p2 = p1;
 	bool checked[4];
 	while (true) {
@@ -380,7 +333,7 @@ void followBorder(int *image, int numrows, int numcols, int row, int col, struct
 		//otherwise, (i2, j2) <- (i3, j3), (i3, j3) <- (i4, j4), and go back to(3.3).
 		if (samePoint(start, p4) && samePoint(p1, p3)) {
 			int vector_size;
-			struct Point *temp = trimPointVector(&point_storage, &vector_size);
+			Point *temp = trimPointVector(&point_storage, &vector_size);
 			addPoint2dVector(contour_vector, temp);
 			addIntVector(contour_counter, vector_size);
 			return;
@@ -430,14 +383,14 @@ int** readFile(const char * s, int *numrows, int *numcols) {
 }
 
 //prints the hierarchy list
-void printHierarchy(struct Node *hierarchy, int hierarchy_size) {
+void printHierarchy(Node *hierarchy, int hierarchy_size) {
 	for (int i = 0; i < hierarchy_size; i++) {
 		printf("%2d:: parent: %3d first child: %3d next sibling: %3d\n", i + 1, hierarchy[i].parent, hierarchy[i].first_child, hierarchy[i].next_sibling);
 //		cout << setw(2) << i + 1 << ":: parent: " << setw(3) << hierarchy[i].parent << " first child: " << setw(3) << hierarchy[i].first_child << " next sibling: " << setw(3) << hierarchy[i].next_sibling << endl;
 	}
 }
 
-void drawContour(struct Point **contours, int *contour_index, struct Pixel **color, int seq_num, struct Pixel pix) {
+void drawContour(Point **contours, int *contour_index, Pixel **color, int seq_num, Pixel pix) {
 	int r, c;
 	for (int i = 0; i < contour_index[seq_num]; i++) {
 		r = contours[seq_num][i].row;
@@ -446,9 +399,9 @@ void drawContour(struct Point **contours, int *contour_index, struct Pixel **col
 	}
 }
 
-struct Pixel chooseColor(int n) {
+Pixel chooseColor(int n) {
 
-	struct Pixel tmp;
+	Pixel tmp;
 	switch (n % 6) {
 	case 0:
 		setPixel(&tmp, 255, 0, 0);
@@ -471,19 +424,19 @@ struct Pixel chooseColor(int n) {
 	}
 }
 
-//creates a 2D array of struct Pixel, which is the 3 channel image needed to convert the 2D vector contours to a drawn bmp file
+//creates a 2D array of Pixel, which is the 3 channel image needed to convert the 2D vector contours to a drawn bmp file
 //uses DFS to step through the hierarchy tree, can be set to draw only the top 2 levels of contours, for example.
-struct Pixel** createChannels(int h, int w, struct Node *hierarchy, struct Point **contours, int *contour_index, int contour_size) {
+Pixel** createChannels(int h, int w, Node *hierarchy, Point **contours, int *contour_index, int contour_size) {
 
-	struct Pixel **color;
+	Pixel **color;
 
-	if ((color = (struct Pixel**)malloc(sizeof(struct Pixel*)*h)) == NULL)
+	if ((color = (Pixel**)malloc(sizeof(Pixel*)*h)) == NULL)
 		perror("malloc failed");
 
 	for (int i = 0; i < h; i++) {
-		if ((color[i] = (struct Pixel*)malloc(sizeof(struct Pixel)*w)) == NULL)
+		if ((color[i] = (Pixel*)malloc(sizeof(Pixel)*w)) == NULL)
 			perror("malloc failed");
-		memset(color[i], 0, sizeof(struct Pixel)*w);
+		memset(color[i], 0, sizeof(Pixel)*w);
 	}
 	
 	for (int i = 1; i < contour_size; i++) {
@@ -494,10 +447,10 @@ struct Pixel** createChannels(int h, int w, struct Node *hierarchy, struct Point
 }
 
 //save image to bmp
-void saveImageFile(const char * file_name, int h, int w, struct Node *hierarchy, struct Point **contours, int *contour_index, int contour_size) {
+void saveImageFile(const char * file_name, int h, int w, Node *hierarchy, Point **contours, int *contour_index, int contour_size) {
 	FILE *f;
 
-	struct Pixel **color = createChannels(h, w, hierarchy, contours, contour_index, contour_size);
+	Pixel **color = createChannels(h, w, hierarchy, contours, contour_index, contour_size);
 
 	unsigned char *img = NULL;
 	int filesize = 54 + 3 * w*h;  //w is your image width, h is image height, both int
@@ -561,39 +514,39 @@ void findContours(int* im,
 	int *hierarchy_size,
 	int *contour_size,
 	int *contour_index_size,
-	struct Point ***contours,
+	Point ***contours,
 	int **contours_index,
-	struct Node **hierarchy) {
+	Node **hierarchy) {
 
-	struct Border NBD;
-	struct Border LNBD;
+	Border NBD;
+	Border LNBD;
 
 	LNBD.border_type = HOLE_BORDER;
 	NBD.border_type = HOLE_BORDER;
 	NBD.seq_num = 1;
 
-	struct nodeVector hierarchy_vector;
+	nodeVector hierarchy_vector;
 	initNodeVector(&hierarchy_vector);
-	struct Node temp_node;
+	Node temp_node;
 	resetNode(&temp_node);
 	temp_node.border = NBD;
 	addNodeVector(&hierarchy_vector, temp_node);
 
 	//add in padding for both contour and hierarchy have the same offset.
-	struct point2dVector contour_vector;
+	point2dVector contour_vector;
 	initPoint2dVector(&contour_vector);
-	struct Point border;
+	Point border;
 	setPoint(&border, -1, -1);
-	struct Point *padding;
-	padding = (struct Point*)malloc(sizeof(struct Point));
+	Point *padding;
+	padding = (Point*)malloc(sizeof(Point));
 	padding[0] = border;
 	addPoint2dVector(&contour_vector, padding);
 
-	struct intVector contour_counter;
+	intVector contour_counter;
 	initIntVector(&contour_counter);
 	addIntVector(&contour_counter, 1);
 
-	struct Point p2;
+	Point p2;
 	bool border_start_found;
 
 	for (int r = 0; r < numrows; r++) {
@@ -684,9 +637,9 @@ int main() {
 	int hierarchy_size;
 	int contour_size;
 	int contour_index_size;
-	struct Point **contours;
+	Point **contours;
 	int *contours_index;
-	struct Node* hierarchy;
+	Node* hierarchy;
 	
 
 	image = readFile("test2.pgm", &numrows, &numcols);
@@ -702,6 +655,25 @@ int main() {
 	findContours(im, numrows, numcols, &hierarchy_size, &contour_size, 
 		&contour_index_size, &contours, &contours_index, &hierarchy);
 
+	// int r, c;
+	// int x = 0, y = 0;
+	// for (int i = 1; i < contour_size; i++) {
+	// 	printf("contour %d: ", i);
+	// 	x = 0;
+	// 	y = 0;
+	// 	for (int j = 0; j < contours_index[i]; j++) {
+	// 		r = contours[i][j].row;
+	// 		c = contours[i][j].col;
+	// 		x += r;
+	// 		y += c;
+	// 		// printf("(%d,%d) ", r, c);
+	// 	}
+	// 	x /= contours_index[i];
+	// 	y /= contours_index[i];
+	// 	printf("(%d,%d)", x, y);
+	// 	printf("\n");
+	// }
+
 	assert(contours_index != NULL);
 
 	printHierarchy(hierarchy, hierarchy_size);
@@ -711,6 +683,6 @@ int main() {
 	free(im);
 
 	free2dArray(image, numrows);
-	
+
 	return 0;
 }
