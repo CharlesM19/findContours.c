@@ -703,7 +703,6 @@ int main() {
 		&contour_index_size, &contours, &contours_index, &hierarchy);
 
 	assert(contours_index != NULL);
-	// printf("%d\n", *contours_index);
 
 	printHierarchy(hierarchy, hierarchy_size);
 
@@ -711,16 +710,7 @@ int main() {
 
 	free(im);
 
-	//free malloc
-	// free(hierarchy);
-	// for (int i = 0; i < contour_size; i++) {
-	// 	free(contours[i]);
-	// }
-	// free(contours);
-	// free(contours_index);
-
 	free2dArray(image, numrows);
-	// printf("%d %d %d\n", hierarchy_size, contour_size, contour_index_size);
-
+	
 	return 0;
 }
