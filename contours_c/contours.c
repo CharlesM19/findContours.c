@@ -313,7 +313,7 @@ bool isExamined(bool checked[4]) {
 	return checked[0];
 }
 
-void followBorder(int **image, int numrows, int numcols, int row, int col, struct Point p2, struct Border NBD, struct point2dVector *contour_vector, struct intVector *contour_counter) {
+void followBorder(int *image, int numrows, int numcols, int row, int col, struct Point p2, struct Border NBD, struct point2dVector *contour_vector, struct intVector *contour_counter) {
 	struct Point current;
 	setPoint(&current, p2.row, p2.col);
 	struct Point start;
@@ -325,14 +325,14 @@ void followBorder(int **image, int numrows, int numcols, int row, int col, struc
 	do {
 		stepCW(&current, start);
 		if (samePoint(current, p2)) {
-			image[start.row][start.col] = -NBD.seq_num;
+			image[start.row*numrows+start.col] = -NBD.seq_num;
 			struct Point *temp = (struct Point*)malloc(sizeof(struct Point));
 			temp[0] = start;
 			addPoint2dVector(contour_vector, temp);
 			addIntVector(contour_counter, 1);
 			return;
 		}
-	} while (pixelOutOfBounds(current, numrows, numcols) || image[current.row][current.col] == 0);
+	} while (pixelOutOfBounds(current, numrows, numcols) || image[current.row*numrows+current.col] == 0);
 	
 	struct pointVector point_storage;
 	initPointVector(&point_storage);
@@ -358,7 +358,7 @@ void followBorder(int **image, int numrows, int numcols, int row, int col, struc
 		do {
 			markExamined(current, p3, checked);
 			stepCCW(&current, p3);
-		} while (pixelOutOfBounds(current, numrows, numcols) || image[current.row][current.col] == 0);
+		} while (pixelOutOfBounds(current, numrows, numcols) || image[current.row*numrows+current.col] == 0);
 		p4 = current;
 
 		//Change the value fi3, j3 of the pixel(i3, j3) as follows :
@@ -366,11 +366,11 @@ void followBorder(int **image, int numrows, int numcols, int row, int col, struc
 		//	If the pixel(i3, j3 + 1) is not a 0 - pixel examined in the substep(3.3) and fi3, j3 = 1, then fi3, j3 ←NBD.
 		//	Otherwise, do not change fi3, j3.
 
-		if ((p3.col + 1 >= numcols || image[p3.row][p3.col + 1] == 0) && isExamined(checked)) {
-			image[p3.row][p3.col] = -NBD.seq_num;
+		if ((p3.col + 1 >= numcols || image[p3.row*numrows+p3.col + 1] == 0) && isExamined(checked)) {
+			image[p3.row*numrows+p3.col] = -NBD.seq_num;
 		}
-		else if (p3.col + 1 < numcols && image[p3.row][p3.col] == 1) {
-			image[p3.row][p3.col] = NBD.seq_num;
+		else if (p3.col + 1 < numcols && image[p3.row*numrows+p3.col] == 1) {
+			image[p3.row*numrows+p3.col] = NBD.seq_num;
 		}
 
 		addPointVector(&point_storage, p3);
@@ -554,18 +554,19 @@ void saveImageFile(const char * file_name, int h, int w, struct Node *hierarchy,
 	free(color);
 	fclose(f);
 }
-//==============================================================================//
 
-int main() {
-	int **image;
-	int numrows = 0;
-	int numcols = 0;
+void findContours(int* im, 
+	int numrows, 
+	int numcols, 
+	int* hierarchy_size,
+	int* contour_size,
+	int* contour_index_size,
+	struct Point **contours,
+	int *contours_index,
+	struct Node *hierarchy) {
 
 	struct Border NBD;
 	struct Border LNBD;
-
-
-	image = readFile("test2.pgm", &numrows, &numcols);
 
 	LNBD.border_type = HOLE_BORDER;
 	NBD.border_type = HOLE_BORDER;
@@ -603,7 +604,7 @@ int main() {
 			//Phase 1: Find border
 			//If fij = 1 and fi, j-1 = 0, then decide that the pixel (i, j) is the border following starting point
 			//of an outer border, increment NBD, and (i2, j2) <- (i, j - 1).
-			if ((image[r][c] == 1 && c - 1 < 0) || (image[r][c] == 1 && image[r][c - 1] == 0)) {
+			if ((im[r*numrows+c] == 1 && c - 1 < 0) || (im[r*numrows+c] == 1 && im[r*numrows+c - 1] == 0)) {
 				NBD.border_type = OUTER_BORDER;
 				NBD.seq_num += 1;
 				setPoint(&p2, r, c - 1);
@@ -612,11 +613,11 @@ int main() {
 
 			//Else if fij >= 1 and fi,j+1 = 0, then decide that the pixel (i, j) is the border following
 			//starting point of a hole border, increment NBD, (i2, j2) ←(i, j + 1), and LNBD ← fij in case fij > 1.
-			else if (c + 1 < numcols && (image[r][c] >= 1 && image[r][c + 1] == 0)) {
+			else if (c + 1 < numcols && (im[r*numrows+c] >= 1 && im[r*numrows + c + 1] == 0)) {
 				NBD.border_type = HOLE_BORDER;
 				NBD.seq_num += 1;
-				if (image[r][c] > 1) {
-					LNBD.seq_num = image[r][c];
+				if (im[r*numrows+c] > 1) {
+					LNBD.seq_num = im[r*numrows+c];
 					LNBD.border_type = hierarchy_vector.vector[LNBD.seq_num - 1].border.border_type;
 				}
 				setPoint(&p2, r, c + 1);
@@ -650,45 +651,81 @@ int main() {
 				}
 
 				//Phase 3: Follow border
-				followBorder(image, numrows, numcols, r, c, p2, NBD, &contour_vector, &contour_counter);
+				followBorder(im, numrows, numcols, r, c, p2, NBD, &contour_vector, &contour_counter);
 			}
 
 			//Phase 4: Continue to next border
 			//If fij != 1, then LNBD <- abs( fij ) and resume the raster scan from the pixel(i, j + 1).
 			//The algorithm terminates when the scan reaches the lower right corner of the picture.
-			if (abs(image[r][c]) > 1) {
-				LNBD.seq_num = abs(image[r][c]);
+			if (abs(im[r*numrows+c]) > 1) {
+				LNBD.seq_num = abs(im[r*numrows+c]);
 				LNBD.border_type = hierarchy_vector.vector[LNBD.seq_num - 1].border.border_type;
 			}
 		}
 	}
 
+	// int hierarchy_size;
+	// int contour_size;
+	// int contour_index_size;
+	contours = trimPoint2dVector(&contour_vector, contour_size);
+	contours_index = trimIntVector(&contour_counter, contour_index_size);
+	hierarchy = trimNodeVector(&hierarchy_vector, hierarchy_size);
+
+	assert(contours_index != NULL);
+
+	saveImageFile("test2.bmp", numrows, numcols, hierarchy, contours, contours_index, *contour_size);
+	
+	if (*hierarchy_size != *contour_index_size || *hierarchy_size != *contour_size)
+		printf("Storage offset error");
+
+	// //free malloc
+	// free(hierarchy);
+	// for (int i = 0; i < contour_size; i++) {
+	// 	free(contours[i]);
+	// }
+	// free(contours);
+	// free(contours_index);
+}
+//==============================================================================//
+
+int main() {
+	int **image;
+	int numrows = 0;
+	int numcols = 0;
+
 	int hierarchy_size;
 	int contour_size;
 	int contour_index_size;
-	struct Point **contours = trimPoint2dVector(&contour_vector, &contour_size);
-	int *contours_index = trimIntVector(&contour_counter, &contour_index_size);
-	struct Node *hierarchy = trimNodeVector(&hierarchy_vector, &hierarchy_size);
+	struct Point **contours;
+	int *contours_index;
+	struct Node* hierarchy;
 	
-	if (hierarchy_size != contour_index_size || hierarchy_size != contour_size)
-		printf("Storage offset error");
 
-	for (int i = 0; i < numrows; i++){
-		for (int j = 0; j < numcols; j++) {
-			printf("%3d ", image[i][j]);
+	image = readFile("test2.pgm", &numrows, &numcols);
+
+	int* im = malloc(numcols*numrows*sizeof(int));
+
+	for (int i=0; i<numrows; i++) {
+		for (int j=0; j<numcols; j++) {
+			im[i*numrows+j] = image[i][j];
 		}
-		printf("\n");
 	}
-	printHierarchy(hierarchy, hierarchy_size);
 
-	saveImageFile("test2.bmp", numrows, numcols, hierarchy, contours, contours_index, contour_size);
+	findContours(im, numrows, numcols, &hierarchy_size, &contour_size, 
+		&contour_index_size, contours, contours_index, hierarchy);
+
+	free(im);
 
 	//free malloc
+	// free(hierarchy);
+	// for (int i = 0; i < contour_size; i++) {
+	// 	free(contours[i]);
+	// }
+	// free(contours);
+	// free(contours_index);
+
 	free2dArray(image, numrows);
-	free(hierarchy);
-	for (int i = 0; i < contour_size; i++) {
-		free(contours[i]);
-	}
-	free(contours);
-	free(contours_index);
+	// printf("%d %d %d\n", hierarchy_size, contour_size, contour_index_size);
+
+	return 0;
 }
