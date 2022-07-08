@@ -709,6 +709,8 @@ bool contains(Point center, const Point* contours, int length) {
 int contourArea(const Point* contour, 
 	Point center, int length) {
 
+	// TODO: fix out of bounds issue
+
 	// check for null
 	assert(contour != NULL);
 
@@ -784,6 +786,123 @@ int contourArea(const Point* contour,
 	}
 
 	return area;
+}
+
+bool isOutofBounds(Point p, int numcols, int numrows) {
+	return (bool) (p.row > numrows || p.col > numcols);
+}
+
+bool visitedAll(int* visited, Point* pt, int numrows, int numcols) {
+	for (int i=0; i<numrows; i++) {
+		for (int j=0; j<numcols; j++) {
+			// if any node not set to 0
+			// not done visiting all points
+			if (visited[i*numrows+j] > 0) {
+				// modify point
+				pt->row = i;
+				pt->col = j;
+				return false;
+			}
+		}
+	}
+	// else return true since all nodes are 0
+	return true;
+}
+
+int* findSCC(const int* im, 
+	int numrows, int numcols) {
+	// input image must be masked
+	// returns image mask
+
+	// number of SCCs
+	int numSCC = 0;
+
+	// number of points in SCC
+	int numPoints = 0;
+
+	// marker: 0 -> border, [-1, -inf) -> marker values, [1, inf) -> non-masked values
+	int marker = -1;
+
+	// create stack to track nodes
+	Stack *s = createStack(numrows*numcols);
+
+	// points for iteration
+	Point temp;
+	Point curr;
+
+	// create point grid to check visited
+	int* visited = malloc(numrows*numcols*sizeof(int));
+
+	// copy given array
+	memcpy(visited, im, numrows*numcols*sizeof(int));
+
+	// Use DFS to look for SCCs
+	while (!visitedAll(visited, &temp, numrows, numcols)) {
+		// choose new start point i.e. != 0
+		push(s, temp);
+
+		// zero number of points in SCC
+		numPoints = 0;
+
+		// start of new SCC
+		while (!Empty(s)) {
+			// get front of queue
+			curr = pop(s);
+			
+			// add to visited
+			visited[curr.row*numrows+curr.col] = marker;
+			numPoints++;
+
+			// check the four possible adjacent points
+			// if the point is not visited
+			// check if it is outside the bounds of the image
+
+			// check right
+			temp.row = curr.row + 1;
+			temp.col = curr.col;
+
+			if (!isOutofBounds(temp, numcols, numrows)) {
+				if (visited[temp.row*numrows+temp.col] > 0) {
+					push(s, temp);
+				}
+			}
+
+			// check left
+			temp.row = curr.row - 1;
+			temp.col = curr.col;
+
+			if (!isOutofBounds(temp, numcols, numrows)) {
+				if (visited[temp.row*numrows+temp.col] > 0) {
+					push(s, temp);
+				}
+			}
+
+			// check up
+			temp.row = curr.row;
+			temp.col = curr.col - 1;
+
+			if (!isOutofBounds(temp, numcols, numrows)) {
+				if (visited[temp.row*numrows+temp.col] > 0) {
+					push(s, temp);
+				}
+			}
+
+			// check down
+			temp.row = curr.row;
+			temp.col = curr.col + 1;
+
+			if (!isOutofBounds(temp, numcols, numrows)) {
+				if (visited[temp.row*numrows+temp.col] > 0) {
+					push(s, temp);
+				}
+			}
+
+		}
+		// create new marker and increment number of SCCs
+		marker--;
+		numSCC++;
+	}
+	return visited;
 }
 
 //==============================================================================//

@@ -8,6 +8,7 @@
 #include <stdbool.h>
 
 #include "queue.h"
+#include "stack.h"
 
 int** create2dArray(int r, int c);
 
@@ -173,6 +174,8 @@ void getExternalContours(int *hierarchy_size,
 
 int contourArea(const Point* contour, 
 	Point center, int length);
-//==============================================================================//
 
+int* findSCC(const int* im, 
+	int numrows, int numcols);
+//==============================================================================//
 #endif

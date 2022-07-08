@@ -5,12 +5,9 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "point.h"
 
 //======================Point=========================================//
-typedef struct Point {
-	int row;
-	int col;
-} Point;
 
 #define ITEM Point
 
