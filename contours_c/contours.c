@@ -1,4 +1,5 @@
 ﻿#include "contours.h"
+#include "queue.h"
 
 // #define _CRT_SECURE_NO_WARNINGS
 #define HOLE_BORDER 1
@@ -627,4 +628,81 @@ void findContours(int* im,
 	if (*hierarchy_size != *contour_index_size || *hierarchy_size != *contour_size)
 		printf("Storage offset error");
 }
+
+void getExternalContours(int *hierarchy_size,
+	int *contour_size,
+	int *contour_index_size,
+	Point ***contours,
+	int **contours_index,
+	Node **hierarchy) {
+
+	printHierarchy(*hierarchy, *hierarchy_size);
+
+	// sizes
+	int new_contour_size = 0;
+	int new_contour_index_size = 0;
+	int new_hierarchy_size = 0;
+	int *new_contours_index = malloc(sizeof(int));
+	*new_contours_index = (*contours_index)[0];
+
+	int* indices = NULL;
+
+	// get head of new lists
+	Node* hierarchyHead = *hierarchy;
+	Point** contoursHead = *contours;
+
+	// get new size
+	for (int i = 0; i<*hierarchy_size; i++) {
+		// if highest on hierarchy link to head
+		if ((*hierarchy)[i].parent == 1 || (*hierarchy)[i].parent == -1) {
+				// increment sizes
+				new_contour_index_size++;
+				new_contour_size++;
+				new_hierarchy_size++;
+			}
+	}
+
+	// allocate new containers
+	new_contours_index = malloc(new_contour_size*sizeof(int));
+	hierarchyHead = malloc(new_hierarchy_size*sizeof(Node));
+	contoursHead = malloc(new_contour_size*sizeof(Point*));
+	indices = malloc(new_contour_size*sizeof(int));
+
+	// copy over relevant contours
+	for (int i=0, j=0; i<*contour_size; i++) {
+		if ((*hierarchy)[i].parent == 1 || (*hierarchy)[i].parent == -1) {
+			new_contours_index[j] = (*contours_index)[i];
+			indices[j++] = i;
+		}
+	}
+
+	// copy over points and hierarchies
+	for (int i=0; i<new_contour_size; i++) {
+		hierarchyHead[i] = (*hierarchy)[indices[i]];
+		contoursHead[i] = malloc(new_contours_index[i]*sizeof(Point));
+		memcpy(contoursHead[i], (*contours)[indices[i]], new_contours_index[i]*sizeof(Point));
+	}
+
+	// set new sizes
+	*contour_size = new_contour_size;
+	*hierarchy_size = new_hierarchy_size;
+	*contour_index_size = new_contour_index_size;
+
+	// check for same size
+	if (*hierarchy_size != *contour_index_size || *hierarchy_size != *contour_size)
+		printf("Storage offset error");
+
+	// set new points and hierarchies
+	*contours = contoursHead;
+	*hierarchy = hierarchyHead;
+}
+
+int contourArea(const Point* contour, 
+	const Point center, int length) {
+
+	// TODO: use BFS to get number of enclosed points
+
+	return 0;
+}
+
 //==============================================================================//

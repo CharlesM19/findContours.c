@@ -27,30 +27,33 @@ int main(void) {
 	findContours(im, numrows, numcols, &hierarchy_size, &contour_size, 
 		&contour_index_size, &contours, &contours_index, &hierarchy);
 
-	// int r, c;
-	// int x = 0, y = 0;
-	// for (int i = 1; i < contour_size; i++) {
-	// 	printf("contour %d: ", i);
-	// 	x = 0;
-	// 	y = 0;
-	// 	for (int j = 0; j < contours_index[i]; j++) {
-	// 		r = contours[i][j].row;
-	// 		c = contours[i][j].col;
-	// 		x += r;
-	// 		y += c;
-	// 		// printf("(%d,%d) ", r, c);
-	// 	}
-	// 	x /= contours_index[i];
-	// 	y /= contours_index[i];
-	// 	printf("(%d,%d)", x, y);
-	// 	printf("\n");
-	// }
-
 	assert(contours_index != NULL);
 
-	printHierarchy(hierarchy, hierarchy_size);
+    getExternalContours(&hierarchy_size, &contour_size, 
+		&contour_index_size, &contours, &contours_index, &hierarchy);
 
-	saveImageFile("test2.bmp", numrows, numcols, hierarchy, contours, contours_index, contour_size);	
+    saveImageFile("test2.bmp", numrows, numcols, hierarchy, contours, contours_index, contour_size);	
+
+	// printHierarchy(hierarchy, hierarchy_size);
+
+    int r, c;
+	int x = 0, y = 0;
+	for (int i = 1; i < contour_size; i++) {
+		printf("contour %d: ", i);
+		x = 0;
+		y = 0;
+		for (int j = 0; j < contours_index[i]; j++) {
+			r = contours[i][j].row;
+			c = contours[i][j].col;
+			x += r;
+			y += c;
+			// printf("(%d,%d) ", r, c);
+		}
+		x /= contours_index[i];
+		y /= contours_index[i];
+		printf("(%d,%d)", x, y);
+		printf("\n");
+	}
 
 	free(im);
 

@@ -168,6 +168,12 @@ void findContours(int* im,
 	int **contours_index,
 	Node **hierarchy);
 
+void getExternalContours(int *hierarchy_size,
+	int *contour_size,
+	int *contour_index_size,
+	Point ***contours,
+	int **contours_index,
+	Node **hierarchy);
 //==============================================================================//
 
 #endif
