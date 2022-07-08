@@ -6,10 +6,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+//======================Point=========================================//
+typedef struct Point {
+	int row;
+	int col;
+} Point;
+
+#define ITEM Point
+
+extern const Point p; 
+
 typedef struct Queue {
     int front, rear, size;
     unsigned capacity;
-    int* array;
+    ITEM* array;
 } Queue;
   
 // function to create a queue
@@ -26,16 +36,16 @@ int isEmpty(Queue* queue);
   
 // Function to add an item to the queue.
 // It changes rear and size
-void enqueue(Queue* queue, int item);
+void enqueue(Queue* queue, ITEM item);
   
 // Function to remove an item from queue.
 // It changes front and size
-int dequeue(Queue* queue);
+ITEM dequeue(Queue* queue);
   
 // Function to get front of queue
-int front(Queue* queue);
+ITEM front(Queue* queue);
   
 // Function to get rear of queue
-int rear(Queue* queue);
+ITEM rear(Queue* queue);
   
 #endif

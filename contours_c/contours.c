@@ -1,5 +1,4 @@
 ﻿#include "contours.h"
-#include "queue.h"
 
 // #define _CRT_SECURE_NO_WARNINGS
 #define HOLE_BORDER 1
@@ -697,12 +696,94 @@ void getExternalContours(int *hierarchy_size,
 	*hierarchy = hierarchyHead;
 }
 
+bool contains(Point center, const Point* contours, int length) {
+	for (int i=0; i<length; i++) {
+		if (contours[i].col == center.col && 
+			contours[i].row == center.row) {
+			return true;
+		}
+	}
+	return false;
+}
+
 int contourArea(const Point* contour, 
-	const Point center, int length) {
+	Point center, int length) {
 
-	// TODO: use BFS to get number of enclosed points
+	// check for null
+	assert(contour != NULL);
 
-	return 0;
+	Queue* q = createQueue(64); // create queue
+	Queue* visited = createQueue(64); // visited
+	
+	// temporary points to check
+	Point temp;
+	Point curr;
+
+	// area count
+	int area = 1;
+
+	enqueue(q, center); // enqueue first point
+
+	// check for 0 or 1 length contours
+	if (length <= 1) {
+		return length;
+	}
+
+	// check for queue empty to terminate
+	while (!isEmpty(q)) {
+		// get front of queue
+		curr = dequeue(q);
+		
+		// add to visited
+		enqueue(visited, curr);
+
+		// check the four possible adjacent points
+		// if the point is not visited
+		// check if it intersects the edges
+		// of the contour
+
+		// check right
+		temp.row = curr.row + 1;
+		temp.col = curr.col;
+
+		if (!contains(temp, contour, length) && 
+			!contains(temp, visited->array, visited->size)) {
+			enqueue(q, temp);
+			area++;
+		}
+
+		// check left
+		temp.row = curr.row - 1;
+		temp.col = curr.col;
+
+		if (!contains(temp, contour, length) && 
+			!contains(temp, visited->array, visited->size)) {
+			enqueue(q, temp);
+			area++;
+		}
+
+		// check up
+		temp.row = curr.row;
+		temp.col = curr.col - 1;
+
+		if (!contains(temp, contour, length) && 
+			!contains(temp, visited->array, visited->size)) {
+			enqueue(q, temp);
+			area++;
+		}
+
+		// check down
+		temp.row = curr.row;
+		temp.col = curr.col + 1;
+
+		if (!contains(temp, contour, length) && 
+			!contains(temp, visited->array, visited->size)) {
+			enqueue(q, temp);
+			area++;
+		}
+	}
+
+	return area;
 }
 
 //==============================================================================//

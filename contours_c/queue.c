@@ -1,5 +1,7 @@
 #include "queue.h"
 
+const Point p = {-1, -1};
+
 // function to create a queue
 // of given capacity.
 // It initializes size of queue as 0
@@ -12,8 +14,8 @@ Queue* createQueue(unsigned capacity)
   
     // This is important, see the enqueue
     queue->rear = capacity - 1;
-    queue->array = (int*)malloc(
-        queue->capacity * sizeof(int));
+    queue->array = (ITEM*)malloc(
+        queue->capacity * sizeof(ITEM));
     return queue;
 }
   
@@ -32,7 +34,7 @@ int isEmpty(Queue* queue)
   
 // Function to add an item to the queue.
 // It changes rear and size
-void enqueue(Queue* queue, int item)
+void enqueue(Queue* queue, ITEM item)
 {
     if (isFull(queue))
         return;
@@ -40,16 +42,16 @@ void enqueue(Queue* queue, int item)
                   % queue->capacity;
     queue->array[queue->rear] = item;
     queue->size = queue->size + 1;
-    printf("%d enqueued to queue\n", item);
+    // printf("%d enqueued to queue\n", item);
 }
   
 // Function to remove an item from queue.
 // It changes front and size
-int dequeue(Queue* queue)
+ITEM dequeue(Queue* queue)
 {
     if (isEmpty(queue))
-        return INT_MIN;
-    int item = queue->array[queue->front];
+        return p;
+    ITEM item = queue->array[queue->front];
     queue->front = (queue->front + 1)
                    % queue->capacity;
     queue->size = queue->size - 1;
@@ -57,17 +59,17 @@ int dequeue(Queue* queue)
 }
   
 // Function to get front of queue
-int front(Queue* queue)
+ITEM front(Queue* queue)
 {
     if (isEmpty(queue))
-        return INT_MIN;
+        return p;
     return queue->array[queue->front];
 }
   
 // Function to get rear of queue
-int rear(Queue* queue)
+ITEM rear(Queue* queue)
 {
     if (isEmpty(queue))
-        return INT_MIN;
+        return p;
     return queue->array[queue->rear];
 }

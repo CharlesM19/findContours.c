@@ -7,6 +7,8 @@
 #include <assert.h>
 #include <stdbool.h>
 
+#include "queue.h"
+
 int** create2dArray(int r, int c);
 
 void free2dArray(int **arr, int r);
@@ -15,12 +17,6 @@ typedef struct Border {
 	int seq_num;
 	int border_type;
 } Border;
-
-//======================Point=========================================//
-typedef struct Point {
-	int row;
-	int col;
-} Point;
 
 bool samePoint(Point a, Point b);
 
@@ -174,6 +170,9 @@ void getExternalContours(int *hierarchy_size,
 	Point ***contours,
 	int **contours_index,
 	Node **hierarchy);
+
+int contourArea(const Point* contour, 
+	Point center, int length);
 //==============================================================================//
 
 #endif

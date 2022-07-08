@@ -14,7 +14,7 @@ int main(void) {
 	Node* hierarchy;
 	
 
-	image = readFile("test2.pgm", &numrows, &numcols);
+	image = readFile("test4.pgm", &numrows, &numcols);
 
 	int* im = malloc(numcols*numrows*sizeof(int));
 
@@ -29,10 +29,10 @@ int main(void) {
 
 	assert(contours_index != NULL);
 
-    getExternalContours(&hierarchy_size, &contour_size, 
-		&contour_index_size, &contours, &contours_index, &hierarchy);
+    // getExternalContours(&hierarchy_size, &contour_size, 
+	// 	&contour_index_size, &contours, &contours_index, &hierarchy);
 
-    saveImageFile("test2.bmp", numrows, numcols, hierarchy, contours, contours_index, contour_size);	
+    saveImageFile("test4.bmp", numrows, numcols, hierarchy, contours, contours_index, contour_size);	
 
 	// printHierarchy(hierarchy, hierarchy_size);
 
@@ -51,9 +51,15 @@ int main(void) {
 		}
 		x /= contours_index[i];
 		y /= contours_index[i];
-		printf("(%d,%d)", x, y);
+        Point c;
+        c.row = x;
+        c.col = y;
+		printf("(%d,%d) %d", c.row, c.col, contours_index[i]);
+        // printf(" area: %d", contourArea(contours[i], c, contours_index[i]));
 		printf("\n");
 	}
+
+
 
 	free(im);
 
